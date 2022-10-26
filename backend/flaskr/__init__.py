@@ -117,6 +117,7 @@ def create_app(test_config=None):
                     "questions": current_questions,
                     "total_questions": len(Question.query.all()),
                 }
+            )
         except:
             abort(422)
 
@@ -130,7 +131,29 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     """
-    
+    @app.route("/questions", methods=["POST"])
+    def create_question():
+        body = request.get_json()
+
+        new_question = body.get("question", None)
+        new_answer = body.get("answer", None)
+        new_category = body.get("category", None)
+        new_difficulty = body.get("difficulty", None)
+
+        question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+        question.insert()
+
+        selection = Question.query.order_by(Question.id).all()
+        current_questions = paginate_questions(request, selection)
+
+        return jsonify(
+            {
+                "success": True,
+                "created": question.id,
+                "questions": current_questions,
+                "total_questions": len(Question.query.all()),
+            }
+        )
 
     """
     @TODO:
@@ -143,6 +166,26 @@ def create_app(test_config=None):
     Try using the word "title" to start.
     """
 
+    @app.route("/questions/search", methods=["POST"])
+    def search_questions():
+        body = request.get_json()
+        search = body.get("search", None)
+
+        selection = Question.query.order_by(Question.id).filter(
+            Question.question.ilike("%{}%".format(search))
+        )
+        
+        current_questions = paginate_questions(request, selection)
+
+        return jsonify(
+            {
+                "success": True,
+                "questions": current_questions,
+                "total_questions": len(selection.all()),
+            }
+        )
+
+
     """
     @TODO:
     Create a GET endpoint to get questions based on category.
@@ -151,6 +194,25 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
+    @app.route("/categories/<int:category_id>/questions")
+    def get_category_question(category_id):
+        try:
+            question = Question.query.filter(Question.category == category_id).one_or_none()
+            if question is None:
+                abort(404)
+            selection = Question.query.order_by(Question.id).all()
+            current_questions = paginate_questions(request, selection)
+
+            return jsonify(
+                {
+                    "success": True,
+                    "questions": current_questions,
+                    "total_questions": len(Question.query.all()),
+                }
+            )
+        
+        except:
+            abort(422)
 
     """
     @TODO:
@@ -169,6 +231,24 @@ def create_app(test_config=None):
     Create error handlers for all expected errors
     including 404 and 422.
     """
+    @app.errorhandler(404)
+    def not_found(error):
+        return (
+            jsonify({"success": False, "error": 404, "message": "resource not found"}),
+            404,
+        )
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return (
+            jsonify({"success": False, "error": 422, "message": "unprocessable"}),
+            422,
+        )
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({"success": False, "error": 400, "message": "bad request"}), 400
+
 
     return app
 

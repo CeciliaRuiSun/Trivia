@@ -33,6 +33,50 @@ class TriviaTestCase(unittest.TestCase):
     TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
+    def test_get_categories(self):
+        res = self.client().get("/categories")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertTrue(data["categories"])
+        self.assertTrue(len(data["categories"]) > 0)
+    
+    def test_get_paginated_questions(self):
+        res = self.client().get("/questions")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertTrue(data["questions"])
+        self.assertTrue(len(data["questions"]) > 0)
+
+    # def test_create_question(self):
+    #     res = self.client().post("/questions")
+    #     data = json.loads(res.data)
+
+    #     self.assertEqual(res.status_code, 200)
+    #     self.assertEqual(data["success"], True)
+    #     self.assertTrue(data["questions"])
+    #     self.assertTrue(data["total_questions"] > 1)
+
+    def test_get_question_search_with_results(self):
+        res = self.client().post("/questions/search", json={"search": "Butter"})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertTrue(data["total_questions"])
+        self.assertEqual(len(data["questions"]), 1) 
+
+    def test_get_question_search_without_results(self):
+        res = self.client().post("/questions/search", json={"search": "RuiRui"})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertEqual(data["total_questions"], 0)
+        self.assertEqual(len(data["questions"]), 0) 
 
 
 # Make the tests conveniently executable
