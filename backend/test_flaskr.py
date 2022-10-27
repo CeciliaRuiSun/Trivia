@@ -51,14 +51,21 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["questions"])
         self.assertTrue(len(data["questions"]) > 0)
 
-    # def test_create_question(self):
-    #     res = self.client().post("/questions")
-    #     data = json.loads(res.data)
+    def test_create_question(self):
+        new_question = {
+            'question': 'What is the avg. familiy income in Fremont',
+            'answer': '200 k',
+            'difficulty': 1,
+            'category': 5
+        }
+        total_questions_old = len(Question.query.all())
+        res = self.client().post("/questions", json=new_question)
+        data = json.loads(res.data)
+        total_questions_new = len(Question.query.all())
 
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(data["success"], True)
-    #     self.assertTrue(data["questions"])
-    #     self.assertTrue(data["total_questions"] > 1)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertEqual(total_questions_new - total_questions_old, 1)
 
     def test_get_question_search_with_results(self):
         res = self.client().post("/questions/search", json={"search": "Butter"})
@@ -77,6 +84,27 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], True)
         self.assertEqual(data["total_questions"], 0)
         self.assertEqual(len(data["questions"]), 0) 
+
+    def test_get_questions_within_category(self):
+        res = self.client().get("/category/1/questions")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertTrue(data["total_questions"])
+        self.assertEqual(len(data["questions"]), 5) 
+
+    def test_quiz(self):
+        new_quiz = {
+            'category':1
+            'pre_question':[]
+        }
+
+        res = self.client().get("/quiz", json = new_quiz)
+        data = json.loads(res.data)
+
+        
+
 
 
 # Make the tests conveniently executable

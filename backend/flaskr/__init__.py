@@ -185,7 +185,6 @@ def create_app(test_config=None):
             }
         )
 
-
     """
     @TODO:
     Create a GET endpoint to get questions based on category.
@@ -194,20 +193,19 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
-    @app.route("/categories/<int:category_id>/questions")
+    @app.route("/category/<int:category_id>/questions")
     def get_category_question(category_id):
         try:
-            question = Question.query.filter(Question.category == category_id).one_or_none()
-            if question is None:
+            selection = Question.query.order_by(Question.id).filter(Question.category == category_id)
+            if selection is None:
                 abort(404)
-            selection = Question.query.order_by(Question.id).all()
+            
             current_questions = paginate_questions(request, selection)
-
             return jsonify(
                 {
                     "success": True,
                     "questions": current_questions,
-                    "total_questions": len(Question.query.all()),
+                    "total_questions": len(selection.all()),
                 }
             )
         
@@ -223,8 +221,12 @@ def create_app(test_config=None):
 
     TEST: In the "Play" tab, after a user selects "All" or a category,
     one question at a time is displayed, the user is allowed to answer
-    and shown whether they were correct or not.
+    and show whether they were correct or not.
     """
+    @app.route("/quiz", methods=["POST"])
+    def play_quiz():
+        body = request.get_json()
+
 
     """
     @TODO:
