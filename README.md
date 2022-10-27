@@ -2,9 +2,7 @@
 
 ## Trivia App
 
-Udacity is invested in creating bonding experiences for its employees and students. A bunch of team members got the idea to hold trivia on a regular basis and created a webpage to manage the trivia app and play the game, but their API experience is limited and still needs to be built out.
-
-That's where you come in! Help them finish the trivia app so they can start holding trivia and seeing who's the most knowledgeable of the bunch. The application must:
+Udacity is invested in creating bonding experiences for its employees and students. A bunch of team members got the idea to hold trivia on a regular basis and created a webpage to manage the trivia app and play the game. The application function includes:
 
 1. Display questions - both all questions and by category. Questions should show the question, category and difficulty rating by default and can show/hide the answer.
 2. Delete questions.
@@ -14,36 +12,87 @@ That's where you come in! Help them finish the trivia app so they can start hold
 
 Completing this trivia app will give you the ability to structure plan, implement, and test an API - skills essential for enabling your future applications to communicate with others.
 
-## Starting and Submitting the Project
+## APIs
+GET `'/categories'`
+- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+- Request Arguments: None
+- Returns: An object with a single key, categories, that contains an object of id: category_string key: value pairs.
+- Example:
+```bash
+{
+  "1": "Science",
+  "2": "Art",
+  "3": "Geography",
+  "4": "History",
+  "5": "Entertainment",
+  "6": "Sports"
+}
+```
 
-[Fork](https://help.github.com/en/articles/fork-a-repo) the project repository and [clone](https://help.github.com/en/articles/cloning-a-repository) your forked repository to your machine. Work on the project locally and make sure to push all your changes to the remote repository before submitting the link to your repository in the Classroom.
+GET `'/questions'`
+- Fetches all questions in database
+- Request Arguments: None
+- Returns: A list of questions with id, question content, answer, category and question difficulty level.
+- Example:
+```bash
+"questions": [
+    {
+      "answer": "Apollo 13", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 2, 
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+]
+```
 
-## About the Stack
+DELETE `'/questions/<int:question_id>'`
+- Delete a specific question whose id equals `question_id`
+- Request Arguments: `question_id`
+- Returns: The updated list of questions after deletion
+- Example:
+```bash
+    {
+      "answer": "Maya Angelou", 
+      "category": 4, 
+      "difficulty": 2, 
+      "id": 5, 
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    }
+```
 
-We started the full stack application for you. It is designed with some key functional areas:
+POST `'/questions'`
+- Add a new question
+- Request Arguments: `{id: int, question: String, answer: String, category: string, difficulty: int}`
+- Returns: A list of updated questions with id, question content, answer, category and question difficulty level.
+- Example:
+```bash
+"questions": [
+    {
+      "answer": "Apollo 13", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 2, 
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+]
+```
 
-### Backend
+POST `'/questions/search'`
+- Fetches all questions whose question content contains seach item
+- Request Arguments: `{Search: String}`
+- Returns: The list of questions 
 
-The [backend](./backend/README.md) directory contains a partially completed Flask and SQLAlchemy server. You will work primarily in `__init__.py` to define your endpoints and can reference models.py for DB and SQLAlchemy setup. These are the files you'd want to edit in the backend:
+GET `'/category/<int:category_id>/questions'`
+- Fetches questions in the given category
+- Request Arguments:`category_id`
+- Returns: The list of questions within the category
 
-1. `backend/flaskr/__init__.py`
-2. `backend/test_flaskr.py`
+POST `'/quiz'`
+- 
+- 
+- 
+- Example:
+```bash
 
-> View the [Backend README](./backend/README.md) for more details.
-
-### Frontend
-
-The [frontend](./frontend/README.md) directory contains a complete React frontend to consume the data from the Flask server. If you have prior experience building a frontend application, you should feel free to edit the endpoints as you see fit for the backend you design. If you do not have prior experience building a frontend application, you should read through the frontend code before starting and make notes regarding:
-
-1. What are the end points and HTTP methods the frontend is expecting to consume?
-2. How are the requests from the frontend formatted? Are they expecting certain parameters or payloads?
-
-Pay special attention to what data the frontend is expecting from each API response to help guide how you format your API. The places where you may change the frontend behavior, and where you should be looking for the above information, are marked with `TODO`. These are the files you'd want to edit in the frontend:
-
-1. `frontend/src/components/QuestionView.js`
-2. `frontend/src/components/FormView.js`
-3. `frontend/src/components/QuizView.js`
-
-By making notes ahead of time, you will practice the core skill of being able to read and understand code and will have a simple plan to follow to build out the endpoints of your backend API.
-
-> View the [Frontend README](./frontend/README.md) for more details.
+```

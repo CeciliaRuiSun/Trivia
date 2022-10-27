@@ -216,7 +216,7 @@ def create_app(test_config=None):
     @TODO:
     Create a POST endpoint to get questions to play the quiz.
     This endpoint should take category and previous question parameters
-    and return a random questions within the given category,
+    and return a random question within the given category,
     if provided, and that is not one of the previous questions.
 
     TEST: In the "Play" tab, after a user selects "All" or a category,
@@ -226,7 +226,24 @@ def create_app(test_config=None):
     @app.route("/quiz", methods=["POST"])
     def play_quiz():
         body = request.get_json()
+        category_id = body.get("category",None)
+        pre_question = body.get("pre_question")
+        
+        try:
+            if category_id is None:
+                abort(404)
+            
+            else:
+                questions = Question.query.order_by(Question.id).filter(Question.category == category_id).filter(Question.id.notin_((pre_question))).all()
+                random_question = questions[random.randrange(
+                    0, len(questions))].format() if len(questions) > 0 else None
 
+                return jsonify({
+                    'success': True,
+                    'question': random_question
+                })
+        except:
+            abort(422)
 
     """
     @TODO:
