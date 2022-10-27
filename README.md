@@ -89,10 +89,7 @@ GET `'/category/<int:category_id>/questions'`
 - Returns: The list of questions within the category
 
 POST `'/quiz'`
-- 
-- 
-- 
-- Example:
-```bash
+- Fetches questions in the given category and not in previous questions
+- Request Arguments: `category_id`, `pre_questions:[]`
+- Returns: A list of questions.
 
-```

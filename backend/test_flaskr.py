@@ -103,7 +103,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post("/quiz", json = new_quiz)
         data = json.loads(res.data)
         self.assertEqual(data["success"], True)
-
+        self.assertTrue(len(data["question"]) > 0)
 
 
 
