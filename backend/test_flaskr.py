@@ -14,8 +14,10 @@ class TriviaTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia_test"
         self.database_path = "postgres://{}/{}".format('localhost:5432', self.database_name)
+        self.db_host = os.getenv('DB_HOST', 'localhost:5432')  
+        self.database_name = os.getenv('DB_NAME', 'trivia_test')  
+        self.database_path = 'postgresql://{}/{}'.format(self.db_host, self.database_name)
         setup_db(self.app, self.database_path)
 
         # binds the app to the current context
@@ -54,7 +56,7 @@ class TriviaTestCase(unittest.TestCase):
     def test_create_question(self):
         new_question = {
             'question': 'What is the avg. familiy income in Fremont',
-            'answer': '200 k',
+            'answer': '20 k',
             'difficulty': 1,
             'category': 5
         }
@@ -67,6 +69,25 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], True)
         self.assertEqual(total_questions_new - total_questions_old, 1)
 
+    def test_delete_question(self):
+        total_questions = len(Question.query.all())
+        res = self.client().delete("/questions/1")
+        data = json.loads(res.data)
+        total_questions_after_delete = len(Question.query.all())
+        
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertEqual(total_questions - total_questions_after_delete, 1)
+
+    def test_delete_question_does_not_exist(self):
+        res = self.client().delete("/questions/1000")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message", "unprocessable"],)
+
+    
     def test_get_question_search_with_results(self):
         res = self.client().post("/questions/search", json={"search": "Butter"})
         data = json.loads(res.data)
@@ -76,7 +97,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["total_questions"])
         self.assertEqual(len(data["questions"]), 1) 
 
-    def test_get_question_search_without_results(self):
+    def test_search_question_does_not_exist(self):
         res = self.client().post("/questions/search", json={"search": "RuiRui"})
         data = json.loads(res.data)
 
