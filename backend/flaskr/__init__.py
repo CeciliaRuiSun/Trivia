@@ -6,6 +6,15 @@ import random
 
 from models import setup_db, Question, Category
 
+"""
+To deploy the tests, run:
+dropdb trivia_test
+createdb trivia_test
+psql trivia_test < trivia.psql
+python test_flaskr.py
+"""
+
+
 QUESTIONS_PER_PAGE = 10
 
 # def paginate_questions(request, selection):
@@ -109,7 +118,6 @@ def create_app(test_config=None):
                 abort(404)
             
             question.delete()
-            #selection = Question.query.order_by(Question.id).all()
             current_questions = paginate_questions(request)
 
             return jsonify(
@@ -120,7 +128,8 @@ def create_app(test_config=None):
                     "total_questions": len(Question.query.all()),
                 }
             )
-        except:
+        except Exception as ex:
+            #print('delete question ', ex)
             abort(422)
 
     """
@@ -209,11 +218,12 @@ def create_app(test_config=None):
                 {
                     "success": True,
                     "questions": current_questions,
-                    "total_questions": len(selection.all()),
+                    "total_questions": len(Question.query.all()),
                 }
             )
         
-        except:
+        except Exception as ex:
+            print('get category ', ex)
             abort(422)
 
     """
