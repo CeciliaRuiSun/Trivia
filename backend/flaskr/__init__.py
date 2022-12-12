@@ -8,15 +8,21 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
-def paginate_questions(request, selection):
+# def paginate_questions(request, selection):
+#     page = request.args.get("page", 1, type=int)
+#     start = (page - 1) * QUESTIONS_PER_PAGE
+#     end = start + QUESTIONS_PER_PAGE
+
+#     questions = [question.format() for question in selection]
+#     current_questions = questions[start:end]
+
+#     return current_questions
+
+def paginate_questions(request):
     page = request.args.get("page", 1, type=int)
-    start = (page - 1) * QUESTIONS_PER_PAGE
-    end = start + QUESTIONS_PER_PAGE
-
-    questions = [question.format() for question in selection]
-    current_questions = questions[start:end]
-
-    return current_questions
+    current_index = page - 1
+    questions = Question.query.order_by(Question.id).limit(QUESTIONS_PER_PAGE).offset(current_index * QUESTIONS_PER_PAGE).all()
+    return [question.format() for question in questions]
 
 def create_app(test_config=None):
     # create and configure the app
@@ -70,8 +76,8 @@ def create_app(test_config=None):
 
     @app.route("/questions")
     def get_questions():
-        questions = Question.query.order_by(Question.id).all()
-        current_questions = paginate_questions(request, questions)
+        #questions = Question.query.order_by(Question.id).all()
+        current_questions = paginate_questions(request)
         categories = Category.query.order_by(Category.type).all()
 
         if len(current_questions) == 0:
@@ -103,8 +109,8 @@ def create_app(test_config=None):
                 abort(404)
             
             question.delete()
-            selection = Question.query.order_by(Question.id).all()
-            current_questions = paginate_questions(request, selection)
+            #selection = Question.query.order_by(Question.id).all()
+            current_questions = paginate_questions(request)
 
             return jsonify(
                 {
@@ -139,8 +145,8 @@ def create_app(test_config=None):
         question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
         question.insert()
 
-        selection = Question.query.order_by(Question.id).all()
-        current_questions = paginate_questions(request, selection)
+        #selection = Question.query.order_by(Question.id).all()
+        current_questions = paginate_questions(request)
 
         return jsonify(
             {
@@ -167,17 +173,19 @@ def create_app(test_config=None):
         body = request.get_json()
         search = body.get("search", None)
 
-        selection = Question.query.order_by(Question.id).filter(
-            Question.question.ilike("%{}%".format(search))
-        )
+        page = request.args.get("page", 1, type=int)
+        current_index = page - 1
+        current_questions = Question.query.order_by(Question.id).filter(
+            Question.question.ilike(
+            "%{}%".format(search)
+            )).limit(QUESTIONS_PER_PAGE).offset(current_index * QUESTIONS_PER_PAGE).all()
+    
         
-        current_questions = paginate_questions(request, selection)
-
         return jsonify(
             {
                 "success": True,
-                "questions": current_questions,
-                "total_questions": len(selection.all()),
+                "questions": [current_question.format() for current_question in current_questions],
+                "total_questions": len(Question.query.all()),
             }
         )
 
@@ -192,11 +200,11 @@ def create_app(test_config=None):
     @app.route("/category/<int:category_id>/questions")
     def get_category_question(category_id):
         try:
-            selection = Question.query.order_by(Question.id).filter(Question.category == category_id)
-            if selection is None:
+            question = Question.query.filter(Question.category == category_id)
+            if question is None:
                 abort(404)
             
-            current_questions = paginate_questions(request, selection)
+            current_questions = paginate_questions(request)
             return jsonify(
                 {
                     "success": True,
