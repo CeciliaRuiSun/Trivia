@@ -6,26 +6,8 @@ import random
 
 from models import setup_db, Question, Category
 
-"""
-To deploy the tests, run:
-dropdb trivia_test
-createdb trivia_test
-psql trivia_test < trivia.psql
-python test_flaskr.py
-"""
-
 
 QUESTIONS_PER_PAGE = 10
-
-# def paginate_questions(request, selection):
-#     page = request.args.get("page", 1, type=int)
-#     start = (page - 1) * QUESTIONS_PER_PAGE
-#     end = start + QUESTIONS_PER_PAGE
-
-#     questions = [question.format() for question in selection]
-#     current_questions = questions[start:end]
-
-#     return current_questions
 
 def paginate_questions(request):
     page = request.args.get("page", 1, type=int)
@@ -146,26 +128,32 @@ def create_app(test_config=None):
     @app.route("/questions", methods=["POST"])
     def create_question():
         body = request.get_json()
-
+        
+        
         new_question = body.get("question", None)
         new_answer = body.get("answer", None)
         new_category = body.get("category", None)
         new_difficulty = body.get("difficulty", None)
 
-        question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
-        question.insert()
+        if new_question == None or new_answer == None or new_category == None or new_difficulty == None:
+            abort(422)
 
-        #selection = Question.query.order_by(Question.id).all()
-        current_questions = paginate_questions(request)
+        try:
+            question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+            question.insert()
 
-        return jsonify(
-            {
-                "success": True,
-                "created": question.id,
-                "questions": current_questions,
-                "total_questions": len(Question.query.all()),
-            }
-        )
+            current_questions = paginate_questions(request)
+
+            return jsonify(
+                {
+                    "success": True,
+                    "created": question.id,
+                    "questions": current_questions,
+                    "total_questions": len(Question.query.all()),
+                }
+            )
+        except:
+            abort(422)
 
     """
     @TODO:
@@ -207,10 +195,9 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
-    @app.route("/category/<int:category_id>/questions", methods=["POST"])
+    @app.route("/category/<int:category_id>/questions", methods=["GET","POST"])
     def get_category_question(category_id):
-        #print('ttttttttttt')
-        #abort(400)
+        
         try:
             questions = Question.query.filter(Question.category == category_id)
         except Exception as ex:
@@ -227,7 +214,7 @@ def create_app(test_config=None):
                     "total_questions": len(Question.query.all()),
                 }
             )
-        except:
+        except Exception as ex:
             abort(422)
         
 
@@ -255,6 +242,9 @@ def create_app(test_config=None):
             questions = Question.query.order_by(Question.id).filter(Question.category == category_id).filter(Question.id.notin_((pre_question))).all()
             random_question = questions[random.randrange(
                 0, len(questions))].format() if len(questions) > 0 else None
+
+            if random_question is None:
+                abort(422)
 
             return jsonify({
                 'success': True,
