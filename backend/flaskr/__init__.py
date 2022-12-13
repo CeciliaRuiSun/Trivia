@@ -111,12 +111,13 @@ def create_app(test_config=None):
     """
     @app.route("/questions/<int:question_id>", methods=["DELETE"])
     def delete_question(question_id):
-        try:
-            question = Question.query.filter(Question.id == question_id).one_or_none()
+        
+        question = Question.query.filter(Question.id == question_id).one_or_none()
 
-            if question is None:
-                abort(404)
-            
+        if question is None:
+            abort(404)
+        
+        try:    
             question.delete()
             current_questions = paginate_questions(request)
 
@@ -206,25 +207,29 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
-    @app.route("/category/<int:category_id>/questions")
+    @app.route("/category/<int:category_id>/questions", methods=["POST"])
     def get_category_question(category_id):
+        #print('ttttttttttt')
+        #abort(400)
         try:
-            question = Question.query.filter(Question.category == category_id)
-            if question is None:
-                abort(404)
-            
-            current_questions = paginate_questions(request)
+            questions = Question.query.filter(Question.category == category_id)
+        except Exception as ex:
+            abort(422)
+
+        if len(questions.all()) == 0:
+            abort(404)
+        
+        try:
             return jsonify(
                 {
                     "success": True,
-                    "questions": current_questions,
+                    "questions": [question.format() for question in questions],
                     "total_questions": len(Question.query.all()),
                 }
             )
-        
-        except Exception as ex:
-            print('get category ', ex)
+        except:
             abort(422)
+        
 
     """
     @TODO:
@@ -242,20 +247,19 @@ def create_app(test_config=None):
         body = request.get_json()
         category_id = body.get("category",None)
         pre_question = body.get("pre_question")
-        
-        try:
-            if category_id is None:
-                abort(404)
-            
-            else:
-                questions = Question.query.order_by(Question.id).filter(Question.category == category_id).filter(Question.id.notin_((pre_question))).all()
-                random_question = questions[random.randrange(
-                    0, len(questions))].format() if len(questions) > 0 else None
 
-                return jsonify({
-                    'success': True,
-                    'question': random_question
-                })
+        category_questions = Question.query.filter(Question.category == category_id)
+        if len(category_questions.all())==0:
+                abort(404)
+        try:
+            questions = Question.query.order_by(Question.id).filter(Question.category == category_id).filter(Question.id.notin_((pre_question))).all()
+            random_question = questions[random.randrange(
+                0, len(questions))].format() if len(questions) > 0 else None
+
+            return jsonify({
+                'success': True,
+                'question': random_question
+            })
         except:
             abort(422)
 
