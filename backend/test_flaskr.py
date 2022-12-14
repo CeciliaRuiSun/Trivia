@@ -6,14 +6,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flaskr import create_app
 from models import setup_db, Question, Category
 
-"""
-To deploy the tests, run:
-dropdb trivia_test
-createdb trivia_test
-psql trivia_test < trivia.psql
-python test_flaskr.py
-"""
-
 class TriviaTestCase(unittest.TestCase):
     """This class represents the trivia test case"""
 
